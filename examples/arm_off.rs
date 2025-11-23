@@ -49,14 +49,14 @@ fn main() -> Result<(), String> {
 
     let px4_service = "/fmu/vehicle_command";
 
-    let agent_start_wait: u32 = 3; //sec
-    let vehicle_call_wait = 2; //sec
+    let agent_start_wait: u64 = 3; //sec
+    let vehicle_call_wait: u64 = 2; //sec
 
     println!("Starting MicroXRCEAgent with: {}", agent_cmd);
 
-    let mut agent = start_dds_agent(&agent_cmd);
+    let mut agent = start_dds_agent(&agent_cmd)?;
 
-    println!("Agent pid = {}. Waiting {}s fo rinit...", agent.id(), agent_start_wait);
+    println!("Agent pid = {}. Waiting {}s for init...", agent.id(), agent_start_wait);
 
     sleep(Duration::from_secs(agent_start_wait));
 
@@ -72,7 +72,7 @@ fn main() -> Result<(), String> {
         print!("Sending ARM command to drone {} ...", sys);
         io::stdout().flush().ok();
 
-        match ros2_call(&arm_call) {
+        match ros2_call(&arm) {
             Ok((stdout, stderr)) => {
                 println!("OK");
 
