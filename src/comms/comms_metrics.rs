@@ -5,7 +5,6 @@ pub enum CommStats {
     Lost,
 }
 
-
 #[derive(Debug, Clone)]
 pub struct CommsMetrics {
     //drone_id: u32,

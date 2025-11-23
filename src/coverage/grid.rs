@@ -35,6 +35,8 @@ impl Cell {
             self.visited = true;
         }
     }
+
+    
 }
 
 // Grid --> Full Rectangular Search Area
