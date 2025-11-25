@@ -3,6 +3,7 @@ use std::thread::sleep;
 use std::time::{Duration, Instant};
 use std::io::{self, Write};
 
+
 fn ros2_publisher(topic: &str, msg_type: &str, yaml_body: &str, rate: u32, duration: u64, src: &str) -> Result<(), String> {
     let cmd = format!(
         "{} && ros2 topic pub -r {} {} {} \"{}\"",
