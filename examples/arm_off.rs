@@ -17,7 +17,7 @@ fn start_dds_agent(cmd: &str) -> Result<Child, String> {
 }
 
 fn ros2_call(cmd: &str) -> Result<(String, String), String> {
-
+    
     let out = Command::new("bash")
                                     .arg("-lc")
                                     .arg(cmd)
