@@ -1,24 +1,21 @@
-use rclrs::*;
-use px4_msgs::msg::TrajectorySetpoint;
-use std::sync::Arc;
+use crate::offboard::OffboardController;
+use std::{thread, time::Duration};
 
-pub struct TakeOff {
-    pub_toff: Arc<Publisher<TrajectorySetpoint>>,
-}
+const TAKEOFF_ALT: f64 = 5.0;
+
+pub struct TakeOff;
 
 impl TakeOff {
-    pub fn new(node: &Node) -> Result<Self, RclrsError> {
-        Ok(Self { 
-            pub_toff: Arc::new(
-                node.create_publisher("/desired_setpoint")?
-            ),
-        })
-    }
+    pub fn takeoff(controller: &OffboardController) {
 
-    pub fn takeoff(&self) {
-        let mut setpoint = TrajectorySetpoint::default();
-        setpoint.position = [0.0, 0.0, -5.0];
-        setpoint.yaw = 0.0;
-        self.pub_toff.publish(&setpoint).ok();
+        println!("TAKEOFF START");
+
+        // command climb
+        controller.set_target(0.0, 0.0, -TAKEOFF_ALT, 0.0);
+
+        // wait for climb (simple + reliable)
+        thread::sleep(Duration::from_secs(6));
+
+        println!("TAKEOFF COMPLETE");
     }
 }
