@@ -1,100 +1,64 @@
-// mod offboard;
-// mod arm;
-// mod take_off;
-
-// use rclrs::*;
-// use offboard::OffboardController;
-// use arm::ArmDrone;
-// use take_off::TakeOff;
-
-// fn main() -> Result<(), Box<dyn std::error::Error>> {
-//     let context = Context::default_from_env()?;
-//     let mut executor = context.create_basic_executor();
-
-//     let controller = OffboardController::new(&executor)?;
-//     let node = executor.create_node("mission_controller")?;
-
-//     let arm = ArmDrone::new(&node)?;
-//     let takeoff = TakeOff::new(&node)?;
-
-//     std::thread::spawn(move || {
-//         controller.spin_loop();
-//     });
-
-//     std::thread::sleep(std::time::Duration::from_secs(1));
-
-//     arm.set_offboard();
-//     arm.arm();
-
-//     std::thread::sleep(std::time::Duration::from_secs(1));
-
-//     takeoff.takeoff();
-
-//     executor.spin(SpinOptions::default()).first_error()?;
-//     Ok(())
-// }
-
-//state machine based approach next
-
+mod offboard;
 mod arm;
 mod take_off;
-mod offboard;
 mod mission;
-mod tsdf_listner;
 
 use rclrs::*;
-use std::error::Error;
-use std::task::Context;
+use std::sync::Arc;
 use std::thread;
-use  std::time::Duration;
 
+use offboard::OffboardController;
 use arm::ArmDrone;
 use take_off::TakeOff;
-use offboard::OffboardController;
+use mission::run_mission;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+
+    // =====================
+    // ROS SETUP
+    // =====================
     let context = Context::default_from_env()?;
-    let mut  executor = context.create_basic_executor();
+    let mut executor = context.create_basic_executor();
 
-    let node = executor.create_node("mission_orchestrator")?;
-    
-    let offboard = OffboardController::new(&executor)?;
-    let tsdf = tsdf_listner::TsdfListner::new(&node)?;
+    let controller = Arc::new(OffboardController::new(&executor)?);
+    let node = executor.create_node("mission_controller")?;
 
-    let off_clone = offboard.clone();
+    let arm = ArmDrone::new(&node)?;
+
+    // =====================
+    // OFFBOARD THREAD
+    // =====================
+    let ctrl_clone = controller.clone();
     thread::spawn(move || {
-        off_clone.spin_loop();
+        ctrl_clone.spin_loop();
     });
 
-    //arming
-    let arm_dr = ArmDrone::new(&node);
-    thread::sleep(Duration::from_millis(millis(500)));
+    // =====================
+    // MISSION THREAD
+    // =====================
+    let ctrl_m = controller.clone();
+    let node_m = node.clone();
 
-    println!("OFFBOARD MODE ENABLED");
-    arm_dr.set_offboard();
+    thread::spawn(move || {
 
-    println!("ARMING...");
-    arm_dr.arm();
+        thread::sleep(std::time::Duration::from_secs(1));
 
-    thread::sleep(Duration::from_secs(2));
+        arm.set_offboard();
+        arm.arm();
 
-    //take_off
-    let take_off_dr = TakeOff::new(&node);
-    println!("TAKE OFF INITIATED...");
+        // TAKEOFF
+        TakeOff::takeoff(&ctrl_m);
 
-    take_off_dr.takeoff();
+        // MISSION
+        run_mission(&node_m, &ctrl_m).ok();
+    });
 
-    thread::sleep(Duration::from_secs(5));
-
-    //mission
-    println!("STARTING MISSION...");
-    mission::run_mission(&node)?;
-    println!("Mission Finished");
-
-    executor.spin(SpinOptions::default()).first_error()?;
+    // =====================
+    // EXECUTOR (MAIN THREAD)
+    // =====================
+    executor
+        .spin(SpinOptions::default())
+        .first_error()?;
 
     Ok(())
-
 }
-
-
