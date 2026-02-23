@@ -34,10 +34,13 @@
 //     Ok(())
 // }
 
+//state machine based approach next
+
 mod arm;
 mod take_off;
 mod offboard;
 mod mission;
+mod tsdf_listner;
 
 use rclrs::*;
 use std::error::Error;
@@ -56,6 +59,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let node = executor.create_node("mission_orchestrator")?;
     
     let offboard = OffboardController::new(&executor)?;
+    let tsdf = tsdf_listner::TsdfListner::new(&node)?;
 
     let off_clone = offboard.clone();
     thread::spawn(move || {
