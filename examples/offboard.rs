@@ -1,3 +1,4 @@
+// offboard.rs
 use rclrs::*;
 use px4_msgs::msg::{OffboardControlMode, TrajectorySetpoint};
 use std::sync::{Arc, Mutex};
@@ -26,16 +27,17 @@ impl OffboardController {
             .as_micros() as u64
     }
 
-    pub fn new(exe: &Executor) -> Result<Self, RclrsError> {
-        let node = exe.create_node("offboard_controller")?;
+    /// new(exe, namespace) — namespace should be like "px4_1" or "px4_2"
+    pub fn new(exe: &Executor, ns: &str) -> Result<Self, RclrsError> {
+        // create node unique name per namespace
+        let node_name = format!("offboard_controller_{}", ns.replace('/', "_"));
+        let node = exe.create_node(node_name.as_str())?;
 
-        let off_pub = Arc::new(
-            node.create_publisher("/px4_1/fmu/in/offboard_control_mode")?
-        );
+        let off_topic = format!("/{}/fmu/in/offboard_control_mode", ns);
+        let traj_topic = format!("/{}/fmu/in/trajectory_setpoint", ns);
 
-        let traj_pub = Arc::new(
-            node.create_publisher("/px4_1/fmu/in/trajectory_setpoint")?
-        );
+        let off_pub = Arc::new(node.create_publisher(off_topic.as_str())?);
+        let traj_pub = Arc::new(node.create_publisher(traj_topic.as_str())?);
 
         let target = Arc::new(Mutex::new(Target {
             n: 0.0,
