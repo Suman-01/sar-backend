@@ -1,9 +1,8 @@
-// orchestrator.rs
-
 mod offboard;
 mod arm;
 mod take_off;
 mod mission;
+mod grid;
 
 use rclrs::*;
 use std::sync::Arc;
@@ -28,7 +27,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let arm1 = Arc::new(ArmDrone::new(&node, "px4_1", 2)?);
     let arm2 = Arc::new(ArmDrone::new(&node, "px4_2", 3)?);
 
-
     {
         let c = controller1.clone();
         thread::spawn(move || {
@@ -42,6 +40,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         });
     }
 
+    // =========================
+    // START GRID VISUALIZATION
+    // =========================
+    {
+        thread::spawn(move || {
+            if let Err(e) = grid::run() {
+                eprintln!("Grid node error: {:?}", e);
+            }
+        });
+    }
 
     let ctrl1 = controller1.clone();
     let ctrl2 = controller2.clone();
@@ -53,7 +61,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // small delay so everything is up
         thread::sleep(std::time::Duration::from_secs(1));
 
-        // now run the coordinated mission in mission.rs
+        // run coordinated mission
         if let Err(e) = run_mission(&node_m, ctrl1, ctrl2, arm1_m, arm2_m) {
             eprintln!("Mission error: {:?}", e);
         }
