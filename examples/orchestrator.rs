@@ -40,9 +40,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         });
     }
 
-    // =========================
-    // START GRID VISUALIZATION
-    // =========================
+    // Grid
     {
         thread::spawn(move || {
             if let Err(e) = grid::run() {
@@ -67,9 +65,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    // =====================
-    // EXECUTOR (MAIN THREAD)
-    // =====================
+    // Executor
+
     executor
         .spin(SpinOptions::default())
         .first_error()?;

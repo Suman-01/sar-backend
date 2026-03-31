@@ -23,9 +23,9 @@ const GLOBAL_CORNERS: [(f64, f64); 4] = [
     (37.412270, -121.998189), // bottom right
 ];
 
-// Voronoi-like seed grid: more seeds = more regions.
+// seeds (hyper-parameter) 12 regions for now
 const SEED_ROWS: usize = 3;
-const SEED_COLS: usize = 4; // 12 regions total
+const SEED_COLS: usize = 4; 
 
 // Dense sampling inside the geofence.
 const SAMPLE_ROWS: usize = 18;
@@ -509,8 +509,8 @@ pub fn run_mission(
     let top_right = GLOBAL_CORNERS[2];
     let bottom_right = GLOBAL_CORNERS[3];
 
-    let lat_o = top_left.0;
-    let lon_o = top_left.1;
+    let lat_o = top_left.0; // <--*
+    let lon_o = top_left.1; // <--*
 
     let origin_pose = pose_from_uv(
         1.0, 0.0,
