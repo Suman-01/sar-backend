@@ -6,11 +6,7 @@ edition = "2024"
 [dependencies]
 rand = "0.10.1"
 geo = "0.33.1"
-plotters = "0.3.3"
 
-[[bin]]
-name = "main"
-path = "src/main.rs"
 
 
 
