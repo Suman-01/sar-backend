@@ -4,7 +4,13 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-chrono = "0.4.43"
-rand = "0.10.0"
-eframe = "0.33.3"
-egui = "0.33.3"
+rand = "0.10.1"
+geo = "0.33.1"
+plotters = "0.3.3"
+
+[[bin]]
+name = "main"
+path = "src/main.rs"
+
+
+
